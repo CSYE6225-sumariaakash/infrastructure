@@ -37,3 +37,7 @@ aws cloudformation --profile dev create-stack --stack-name Stack1 --template-bod
 
 -------------------------------------------------------------------------------
 aws cloudformation --profile dev delete-stack --stack-name Stack1 --region us-east-1 
+
+
+
+aws cloudformation create-stack --stack-name stack1 --template-body file://csye6225_infra.yml --parameters ParameterKey=VpcCidrBlock,ParameterValue=10.0.0.0/16 ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.0.0/24 ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.1.0/24 ParameterKey=PublicSubnet3CIDR,ParameterValue=10.0.2.0/24 ParameterKey=AWSAccessKeyID,ParameterValue="access" ParameterKey=AWSSecretAccessKey,ParameterValue="secret" ParameterKey=AMIImage,ParameterValue=ami-051c1b45321f676fa --region='us-east-1' --capabilities CAPABILITY_NAMED_IAM
