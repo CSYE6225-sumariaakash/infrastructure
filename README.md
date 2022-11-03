@@ -1,7 +1,13 @@
 # infrastructure
 Infra
 
-# 001568622
+# 001568622 Assign06
+
+Infrastructure as Code w/CloudFormation
+DNS & EC2 Instance A Record
+Route53 should be updated from the CloudFormation template.
+The CloudFormation template should add/update A record to the Route53 zone so that your domain points to your EC2 instance and your web application is accessible thru http://your-domain-name.tld/Links to an external site..
+Your application must be accessible using root context i.e. http://your-domain-name.tld/Links to an external site. and not http://your-domain-name.tld/app-0.1/
 
 # infrastructure/aws
 
@@ -40,4 +46,4 @@ aws cloudformation --profile dev delete-stack --stack-name Stack1 --region us-ea
 
 
 
-aws cloudformation create-stack --stack-name stack1 --template-body file://csye6225_infra.yml --parameters ParameterKey=VpcCidrBlock,ParameterValue=10.0.0.0/16 ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.0.0/24 ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.1.0/24 ParameterKey=PublicSubnet3CIDR,ParameterValue=10.0.2.0/24 ParameterKey=AWSAccessKeyID,ParameterValue="access" ParameterKey=AWSSecretAccessKey,ParameterValue="secret" ParameterKey=AMIImage,ParameterValue=ami-051c1b45321f676fa --region='us-east-1' --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation create-stack --stack-name stack1 --template-body file://csye6225_infra.yaml --parameters ParameterKey=VpcCidrBlock,ParameterValue=10.0.0.0/16 ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.0.0/24 ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.1.0/24 ParameterKey=PublicSubnet3CIDR,ParameterValue=10.0.2.0/24 ParameterKey=AWSAccessKeyID,ParameterValue="access" ParameterKey=AWSSecretAccessKey,ParameterValue="secret" ParameterKey=AMIImage,ParameterValue=ami-051c1b45321f676fa --region='us-east-1' --capabilities CAPABILITY_NAMED_IAM

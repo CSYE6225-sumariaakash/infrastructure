@@ -1,0 +1,427 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create network resources - VPC, Subnets, IGW, Routing Tables
+Parameters:
+  VpcCIDR:
+    Description: CIDR block for this VPC
+    Type: String
+    Default: "10.0.0.0/16"
+  PublicSubnet1CIDR:
+    Description: IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.1.0/24
+  PublicSubnet2CIDR:
+    Description: IP range (CIDR notation) for the public subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.2.0/24
+  PublicSubnet3CIDR:
+    Description: IP range (CIDR notation) for the public subnet in the third Availability Zone
+    Type: String
+    Default: 10.0.3.0/24
+  PrivateSubnet1CIDR:
+    Description: IP range (CIDR notation) for the private subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.4.0/24
+  PrivateSubnet2CIDR:
+    Description: IP range (CIDR notation) for the private subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.5.0/24
+  PrivateSubnet3CIDR:
+    Description: IP range (CIDR notation) for the private subnet in the third Availability Zone
+    Type: String
+    Default: 10.0.6.0/24
+  RootVolumeType:
+    Description: EBS volume type
+    Type: String
+    Default: gp2
+  RootVolumeSize:
+    Description: EBS volume size
+    Type: Number
+    Default: 8
+  instanceType:
+    Description: EC2 Instance type
+    Type: String
+    Default: t2.micro
+  imageId: 
+    Description: EC2 Instance ID
+    Type: String
+    Default: ami-0cd2cba813a4f195c
+  S3BucketName:
+    Description: S3 Bucket Name
+    Type: String
+    Default: akash-csye6225-neu
+  DBName:
+    Description: DB Instance Name
+    Type: String
+    Default: csye6225 
+  DBUserName:
+    Description: DB Instance UserName
+    Type: String
+    Default: csye6225
+  DBPassword:
+    Description: DB Instance Password
+    Type: String
+    Default: akash123
+  envName:
+    Description: Environment Name
+    Type: String
+    Default: dev
+  HostedZoneName:
+    Description: The Route53 hosted zone.
+    Type: String
+    Default: auroraaa.me.
+  Subdomain:
+    Description: The Route53 hosted zone subdomain.
+    Type: String
+    Default: demo
+
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicSubnet1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicSubnet2
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicSubnet3
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateSubnet1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateSubnet2
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateSubnet3
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-IGW
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref myVPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateRouteTable
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet1
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet3
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet Group for RDS instances
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+  
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: applicationSecurityGroup
+      GroupDescription: EC2 Security Group
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '3000'
+          ToPort: '3000'
+          CidrIp: 0.0.0.0/0
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: databaseSecurityGroup
+      GroupDescription: DB Security Group
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+      - SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+        IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdm
+          Ebs:
+            VolumeSize: !Ref RootVolumeSize
+            VolumeType: !Ref RootVolumeType
+            DeleteOnTermination: true
+      InstanceType: !Ref instanceType
+      ImageId: !Ref imageId
+      SecurityGroupIds:
+        - !Ref ApplicationSecurityGroup
+      SubnetId: !Ref PublicSubnet1
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            sed -i '/scripts-user/c\ - [scripts-user, always]' /etc/cloud/cloud.cfg
+            cd /var/lib/cloud/scripts/per-boot/
+            touch reload.sh
+            cat > /var/lib/cloud/scripts/per-boot/reload.sh << 'EOF'
+              sudo pm2 reload all --update-env
+            EOF
+            cat > /etc/environment << 'EOF'
+              export DB_USER=${DBUserName}
+              export DB_PASSWORD=${DBPassword}
+              export DB_NAME=${DBName}
+              export DB_HOST=${RDSInstance.Endpoint.Address}
+              export AWS_BUCKET_REGION=${AWS::Region}
+              export AWS_BUCKET_NAME="${S3BucketName}.${envName}.akash.me"
+            EOF
+            source /etc/profile
+            cd /home/ec2-user/webservice
+            rm -rf node_modules
+            sudo npm i
+            sudo systemctl enable myapp
+            sudo systemctl start myapp
+            sudo pm2 reload all --update-env
+            sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000
+            sleep 10
+            sudo pm2 save
+      Tags:
+        - Key: EC2
+          Value: ApplicationServer
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ['', [!Ref S3BucketName,'.',!Ref envName,'.akash.me' ]]
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: LifeCycleRule
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+            ExpirationInDays: 60
+
+  RDSParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: RDS parameter Group
+      Family: mysql8.0
+      Parameters: 
+        sql_mode: IGNORE_SPACE
+      Tags: 
+        - Key: RDS-ParameterGroup
+          Value: MYSQLDB-ParameterGroup
+
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      Engine: MySQL
+      AllocatedStorage: 20
+      DBInstanceClass: db.t3.micro
+      MultiAZ: false
+      DBInstanceIdentifier: !Ref DBName
+      MasterUsername: !Ref DBUserName
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      DBName: !Ref DBName
+      DBParameterGroupName: !Ref RDSParameterGroup
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+
+  WebAppS3IAMPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: WebAppS3
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+            - 's3:PutObject'
+            - 's3:GetObject'
+            - 's3:DeleteObject'
+            Resource: !Join ['', [!GetAtt 'S3Bucket.Arn','/*' ]]
+      Roles:
+      - !Ref WebAppS3IAMRole
+
+  WebAppS3IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EC2-CSYE6225
+      Description: IAM Role for WebApp and S3
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+
+  EC2InstanceProfile: 
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      InstanceProfileName: EC2InstanceProfile
+      Path: "/"
+      Roles:
+      - !Ref WebAppS3IAMRole
+
+  DNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Join ['', [!Ref 'Subdomain', ., !Ref 'HostedZoneName']]
+      Comment: DNS name for my instance.
+      Name: !Join ['', [!Ref 'Subdomain', ., !Ref 'HostedZoneName']]
+      Type: A
+      TTL: '60'
+      ResourceRecords:
+      - !GetAtt EC2Instance.PublicIp
