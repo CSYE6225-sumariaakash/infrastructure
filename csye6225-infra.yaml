@@ -36,15 +36,15 @@ Parameters:
   RootVolumeSize:
     Description: EBS volume size
     Type: Number
-    Default: 8
+    Default: 20
   instanceType:
     Description: EC2 Instance type
     Type: String
     Default: t2.micro
-  imageId: 
+  ImageId: 
     Description: EC2 Instance ID
     Type: String
-    Default: ami-0cd2cba813a4f195c
+    Default: ami-07f711d1f4bb77f61
   S3BucketName:
     Description: S3 Bucket Name
     Type: String
@@ -60,7 +60,7 @@ Parameters:
   DBPassword:
     Description: DB Instance Password
     Type: String
-    Default: akash123
+    Default: akash*123
   envName:
     Description: Environment Name
     Type: String
@@ -286,7 +286,7 @@ Resources:
             VolumeType: !Ref RootVolumeType
             DeleteOnTermination: true
       InstanceType: !Ref instanceType
-      ImageId: !Ref imageId
+      ImageId: !Ref ImageId
       SecurityGroupIds:
         - !Ref ApplicationSecurityGroup
       SubnetId: !Ref PublicSubnet1
@@ -313,6 +313,11 @@ Resources:
             cd /home/ec2-user/webservice
             rm -rf node_modules
             sudo npm i
+            sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+            -a fetch-config \
+            -m ec2 \
+            -c file:/home/ubuntu/webappDEV/statsd/config.json \
+            -s
             sudo systemctl enable myapp
             sudo systemctl start myapp
             sudo pm2 reload all --update-env
@@ -332,11 +337,6 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
       LifecycleConfiguration:
         Rules:
           - Id: LifeCycleRule
@@ -418,6 +418,7 @@ Resources:
   DNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
+      # HostedZoneName: !Ref 'HostedZoneName'
       HostedZoneName: !Join ['', [!Ref 'Subdomain', ., !Ref 'HostedZoneName']]
       Comment: DNS name for my instance.
       Name: !Join ['', [!Ref 'Subdomain', ., !Ref 'HostedZoneName']]
@@ -425,3 +426,28 @@ Resources:
       TTL: '60'
       ResourceRecords:
       - !GetAtt EC2Instance.PublicIp
+
+  CloudWatchAgentPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "EC2CloudWatchPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'cloudwatch:PutMetricData'
+              - 'ec2:DescribeTags'
+              - 'logs:PutLogEvents'
+              - 'logs:DescribeLogStreams'
+              - 'logs:DescribeLogGroups'
+              - 'logs:CreateLogStream'
+              - 'logs:CreateLogGroup'
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - 'ssm:GetParameter'
+              - 'ssm:PutParameter'
+            Resource: "arn:aws:ssm:*:*:parameter/AmazonCloudWatch-*"
+      Roles:
+        - Ref: WebAppS3IAMRole
