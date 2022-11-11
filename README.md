@@ -1,7 +1,7 @@
 # infrastructure
 Infra
 
-# 001568622 Assign06
+# 001568622 Assign07
 
 Infrastructure as Code w/CloudFormation
 DNS & EC2 Instance A Record
@@ -36,7 +36,7 @@ Your application must be accessible using root context i.e. http://your-domain-n
 1. To create a Stack, hit the following command in your AWS CLI
 
 ---------------------------------------------------------------------------
-aws cloudformation --profile dev create-stack --stack-name Stack1 --template-body file://csye6225-infra.yml --region us-east-1 --parameters ParameterKey=VpcName,ParameterValue=testVPC1 ParameterKey=VpcCIDR,ParameterValue=10.0.0.0/16 ParameterKey=Subnet1CIDR,ParameterValue=10.0.1.0/24 ParameterKey=Subnet2CIDR,ParameterValue=10.0.2.0/24 ParameterKey=Subnet3CIDR,ParameterValue=10.0.3.0/24
+aws cloudformation --profile demo create-stack --stack-name stackname --template-body file://csye6225-infra.yaml --parameters ParameterKey=VpcCIDR,ParameterValue=10.0.0.0/16 ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.1.0/24 ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.2.0/24 ParameterKey=PublicSubnet3CIDR,ParameterValue=10.0.3.0/24 ParameterKey=envName,ParameterValue=demo ParameterKey=Subdomain,ParameterValue=demo ParameterKey=ImageId,ParameterValue=ami-ID  --region=us-east-1 --capabilities CAPABILITY_NAMED_IAM
 
 
 2. To delete a Stack, hit the following command in your AWS CLI
@@ -44,6 +44,3 @@ aws cloudformation --profile dev create-stack --stack-name Stack1 --template-bod
 -------------------------------------------------------------------------------
 aws cloudformation --profile dev delete-stack --stack-name Stack1 --region us-east-1 
 
-
-
-aws cloudformation create-stack --stack-name stack1 --template-body file://csye6225_infra.yaml --parameters ParameterKey=VpcCidrBlock,ParameterValue=10.0.0.0/16 ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.0.0/24 ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.1.0/24 ParameterKey=PublicSubnet3CIDR,ParameterValue=10.0.2.0/24 ParameterKey=AWSAccessKeyID,ParameterValue="access" ParameterKey=AWSSecretAccessKey,ParameterValue="secret" ParameterKey=AMIImage,ParameterValue=ami-051c1b45321f676fa --region='us-east-1' --capabilities CAPABILITY_NAMED_IAM
