@@ -1,7 +1,21 @@
 # infrastructure
 Infra
 
-# 001568622 Assign08
+# 001568622 Assign09
+
+Create Load Balancer Security Group
+Create a security group for the load balancer to access the web application.
+Add ingress rule to allow TCP traffic on ports 80, and 443 from anywhere in the world.
+This security group will be referred to as the load balancer security group.
+
+App Security Group Updates
+Update the EC2 security group for your EC2 instances that will host web applications.
+The ingress rule should allow TCP traffic on ports 22 and port on which your application runs.
+The Source of the traffic should be the load balancer security group.
+Restrict access to the instance from the internet.
+
+The Auto Scaling Application Stack
+So far our web application has been accessible by the IP address of the EC2 instance on HTTP protocol. We will now disable direct access to our web application using the IP address of the EC2 instance. The web application will now only be accessible from the load balancer.
 
 Infrastructure as Code w/CloudFormation
 DNS & EC2 Instance A Record
@@ -43,4 +57,7 @@ aws cloudformation --profile demo create-stack --stack-name stackname --template
 
 -------------------------------------------------------------------------------
 aws cloudformation --profile dev delete-stack --stack-name Stack1 --region us-east-1 
+
+
+aws cloudformation deploy --profile demo --template-file csye6225_infra.yaml  --parameter-overrides KeyName=awskey ImageId=ami-000111 --stack-name stackname --region=us-east-1 --capabilities CAPABILITY_NAMED_IAM
 
