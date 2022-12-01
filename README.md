@@ -58,6 +58,14 @@ aws cloudformation --profile demo create-stack --stack-name stackname --template
 -------------------------------------------------------------------------------
 aws cloudformation --profile dev delete-stack --stack-name Stack1 --region us-east-1 
 
+# COMMANDS FOR ASSIGN09:
 
-aws cloudformation deploy --profile demo --template-file csye6225_infra.yaml  --parameter-overrides KeyName=awskey ImageId=ami-000111 --stack-name stackname --region=us-east-1 --capabilities CAPABILITY_NAMED_IAM
+Stack up
 
+aws cloudformation deploy --profile demo --template-file csye6225_infra.yml  --parameter-overrides KeyName=awskey ImageId=ami-000111 --stack-name stackname --region=us-east-1 --capabilities CAPABILITY_NAMED_IAM
+
+AWS Command to import the SSL certificate into AWS ACM
+
+aws acm import-certificate --certificate fileb://Certificate.pem
+--certificate-chain fileb://CertificateChain.pem
+--private-key fileb://PrivateKey.pem
